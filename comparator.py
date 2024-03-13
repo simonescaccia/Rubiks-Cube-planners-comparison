@@ -1,5 +1,7 @@
 import subprocess
 import re
+import os
+from datetime import datetime
 
 # paths
 SCORPION_PATH = "./planner25/scorpion.sif"
@@ -19,12 +21,12 @@ FAST_DOWNWARD_HEURISTICS = [IDA_STAR_ADD_HEURISTIC, IDA_STAR_HMAX_HEURISTIC, IDA
 
 # planner commands
 SCORPION_CMD = SCORPION_PATH + " {domain_file} {problem_file} {plan_file}"
-FAST_DOWNWARD_CMD = FAST_DOWNWARD_PATH + " --plan-file {plan_file} {domain_file} {problem_file} --search {heuristic}"
-GENERATOR_CMD = "python3 " + GENERATOR_PATH + " {problem_file} {moves_num}"
+FAST_DOWNWARD_CMD = FAST_DOWNWARD_PATH + " --plan-file {{plan_file}} {{domain_file}} {{problem_file}} --search {heuristic}"
+GENERATOR_CMD = "python3 " + GENERATOR_PATH + " --output {problem_file} {moves_num}"
 
 # info regex
 SEARCH_EXIT_CODE_PATTERN = r"search exit code: (\d+)"
-SEARCH_TIME_PATTERN = r"Search time: (\d+\.\d+)s"
+TOTAL_TIME_PATTERN = r"Total time: (\d+(?:\.\d+)?)s"
 PLAN_LENGTH_PATTERN = r"Plan length: (\d+) step\(s\)"
 PEAK_MEMORY_PATTERN = r"Peak memory: (\d+) KB"
 GENERATED_STATES_PATTERN = r"Generated (\d+) state\(s\)"
@@ -48,42 +50,44 @@ FILE_COMMAND_MAP = {
 }
 
 # result files columns
-COLUMNS = ["RANDOM_MOVES", "SEARCH_EXIT_CODE", "SEARCH_TIME", "PLAN_LENGTH", "PEAK_MEMORY", "GENERATED_STATES"]
+COLUMNS = ["RANDOM_MOVES", "SEARCH_EXIT_CODE", "TOTAL_TIME", "PLAN_LENGTH", "PEAK_MEMORY", "GENERATED_STATES"]
 
 # hyperparameters
 PROBLEM_NUMBER = 10
 
-def get_plan_and_search_time(output: str):
+def get_info(output: str):
     # find relevant info using regex
     search_exit_code = re.findall(SEARCH_EXIT_CODE_PATTERN, output)
-    search_time = re.findall(SEARCH_TIME_PATTERN, output)
+    total_time = re.findall(TOTAL_TIME_PATTERN, output)
     plan_length = re.findall(PLAN_LENGTH_PATTERN, output)
     peak_memory = re.findall(PEAK_MEMORY_PATTERN, output)
     generated_states = re.findall(GENERATED_STATES_PATTERN, output)
 
     search_exit_code = search_exit_code[-1] if len(search_exit_code) > 0 else ''
-    search_time = search_time[-1] if len(search_time) > 0 else ''
+    total_time = total_time[-1] if len(total_time) > 0 else ''
     plan_length = plan_length[-1] if len(plan_length) > 0 else ''
     peak_memory = peak_memory[-1] if len(peak_memory) > 0 else ''
     generated_states = generated_states[-1] if len(generated_states) > 0 else ''
 
     # print("search_exit_code:", search_exit_code)
-    # print("search_time:", search_time)
+    # print("total_time:", total_time)
     # print("plan_length:", plan_length)
     # print("peak_memory:", peak_memory)
     # print("generated_states:", generated_states)
 
-    return (search_exit_code, search_time, plan_length, peak_memory, generated_states)
+    return (search_exit_code, total_time, plan_length, peak_memory, generated_states)
 
 def run_command(command: str):
     command = command.split(' ') # transform the command into list
     return subprocess.run(command, capture_output=True, text=True)
 
 def run_planner_command(command: str):
-    print("\n"+command)
+    print("\n" + command)
     print("timestamp:", datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
     output = run_command(command)
-    return get_plan_and_search_time(output.stdout)
+    info = get_info(output.stdout)
+    print("info:", info)
+    return info
 
 def get_last_problem_number(file_path: str):
     # read one csv and get the last problem number
@@ -101,7 +105,8 @@ def write_results(file_path: str, problem_number: int, results: tuple):
     with open(file_path, 'a') as f:
         f.write(str(problem_number) + "," + ",".join(results) + "\n")
 
-def align_planners(problem_number_list: list):
+def align_planners():
+    print("\nAligning planners problem number.")
     # select problem to start
     problem_number_list = [get_last_problem_number(file) + 1 for file in RESULT_FILES]
     # compute the minimum problem number
@@ -121,7 +126,7 @@ def align_planners(problem_number_list: list):
 
 def generate_problem_file(number: int):
     # generate the problem file
-    print("Generating problem file with ", number, " random moves.")
+    print("\nGenerating problem file with ", number, " random moves.")
     command = GENERATOR_CMD.format(problem_file=PROBLEM_FILE.format(number=number), moves_num=number)
     run_command(command)
 
@@ -131,6 +136,7 @@ def run_planners():
     # check if all the problems are solved
     if next_problem_number > PROBLEM_NUMBER:
         return
+    print("\nRunning planners from problem number ", next_problem_number, " to ", PROBLEM_NUMBER, ".")
     # run planners with the next problem number until all problems are solved    
     for i in range(next_problem_number, PROBLEM_NUMBER+1):
         # generate the problem file
@@ -155,4 +161,4 @@ if __name__ == "__main__":
     check_result_files()
 
     # run planners from the problem number
-    run_planners(problem_number)
+    run_planners()
