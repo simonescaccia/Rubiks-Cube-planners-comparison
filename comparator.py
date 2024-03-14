@@ -98,7 +98,7 @@ def get_last_problem_number(file_path: str):
             return 0
         last_line = lines[-1]
         last_problem = last_line.split(",")[0]
-        return last_problem
+        return int(last_problem)
 
 def write_results(file_path: str, problem_number: int, results: tuple):
     # write results to file
