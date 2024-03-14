@@ -3,6 +3,10 @@ import re
 import os
 from datetime import datetime
 
+# hyperparameters
+PROBLEM_NUMBER = 10
+TIME_LIMIT_SEC = 3600 # 1h
+
 # paths
 SCORPION_PATH = "./planner25/scorpion.sif"
 FAST_DOWNWARD_PATH = "./downward/fast-downward.py"
@@ -21,7 +25,7 @@ FAST_DOWNWARD_HEURISTICS = [IDA_STAR_ADD_HEURISTIC, IDA_STAR_HMAX_HEURISTIC, IDA
 
 # planner commands
 SCORPION_CMD = SCORPION_PATH + " {domain_file} {problem_file} {plan_file}"
-FAST_DOWNWARD_CMD = FAST_DOWNWARD_PATH + " --plan-file {{plan_file}} {{domain_file}} {{problem_file}} --search {heuristic}"
+FAST_DOWNWARD_CMD = FAST_DOWNWARD_PATH + " --search-time-limit {time_limit_sec} --plan-file {{plan_file}} {{domain_file}} {{problem_file}} --search {heuristic}"
 GENERATOR_CMD = "python3 " + GENERATOR_PATH + " --output {problem_file} {moves_num}"
 
 # info regex
@@ -44,16 +48,13 @@ RESULT_FILES = [SCORPION_2023_FILE, FAST_DOWNWARD_IDA_STAR_ADD_FILE, FAST_DOWNWA
 
 FILE_COMMAND_MAP = {
     SCORPION_2023_FILE: SCORPION_CMD,
-    FAST_DOWNWARD_IDA_STAR_ADD_FILE: FAST_DOWNWARD_CMD.format(heuristic=IDA_STAR_ADD_HEURISTIC),
-    FAST_DOWNWARD_IDA_STAR_HMAX_FILE: FAST_DOWNWARD_CMD.format(heuristic=IDA_STAR_HMAX_HEURISTIC),
-    FAST_DOWNWARD_IDA_STAR_FF_FILE: FAST_DOWNWARD_CMD.format(heuristic=IDA_STAR_FF_HEURISTIC)
+    FAST_DOWNWARD_IDA_STAR_ADD_FILE: FAST_DOWNWARD_CMD.format(time_limit_sec=TIME_LIMIT_SEC, heuristic=IDA_STAR_ADD_HEURISTIC),
+    FAST_DOWNWARD_IDA_STAR_HMAX_FILE: FAST_DOWNWARD_CMD.format(time_limit_sec=TIME_LIMIT_SEC, heuristic=IDA_STAR_HMAX_HEURISTIC),
+    FAST_DOWNWARD_IDA_STAR_FF_FILE: FAST_DOWNWARD_CMD.format(time_limit_sec=TIME_LIMIT_SEC, heuristic=IDA_STAR_FF_HEURISTIC)
 }
 
 # result files columns
 COLUMNS = ["RANDOM_MOVES", "SEARCH_EXIT_CODE", "TOTAL_TIME", "PLAN_LENGTH", "PEAK_MEMORY", "GENERATED_STATES"]
-
-# hyperparameters
-PROBLEM_NUMBER = 10
 
 def get_info(output: str):
     # find relevant info using regex
