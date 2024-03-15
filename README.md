@@ -9,6 +9,11 @@
 
 ## Requirements
 
+Download submodules:
+
+    git submodule init
+    git submodule update
+
 Install apptainer (Ubuntu):
 
     sudo apt update
@@ -20,7 +25,7 @@ Install apptainer (Ubuntu):
 Download Fast Downward image:
 
     mkdir fast-downward
-    apptainer pull ./fast-downward.sif docker://aibasel/downward:latest
+    apptainer pull ./fast-downward/fast-downward.sif docker://aibasel/downward:latest
 
 Build Scorpion planner:
 
