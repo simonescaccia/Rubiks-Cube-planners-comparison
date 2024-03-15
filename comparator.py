@@ -6,7 +6,7 @@ from datetime import datetime
 # hyperparameters
 PROBLEM_NUMBER = 20
 TIME_LIMIT_SEC = 3600 # 1h
-MEMORY_LIMIT_KB = 5000 # 5GB
+MEMORY_LIMIT_MB = 10000 # 10GB
 
 # paths
 SCORPION_PATH = "./planner25/scorpion.sif"
@@ -25,8 +25,8 @@ IDA_STAR_FF_HEURISTIC = "iterated([astar(ff())])"
 FAST_DOWNWARD_HEURISTICS = [IDA_STAR_ADD_HEURISTIC, IDA_STAR_HMAX_HEURISTIC, IDA_STAR_FF_HEURISTIC]
 
 # planner commands
-SCORPION_CMD = SCORPION_PATH + " {domain_file} {problem_file} {plan_file}"
-FAST_DOWNWARD_CMD = FAST_DOWNWARD_PATH + " --overall-time-limit {time_limit_sec} --overall-memory-limit {memory_limit_kb} --plan-file {{plan_file}} {{domain_file}} {{problem_file}} --search {heuristic}"
+SCORPION_CMD = SCORPION_PATH + " {{domain_file}} {{problem_file}} {{plan_file}} {time_limit_sec} {memory_limit_mb}"
+FAST_DOWNWARD_CMD = FAST_DOWNWARD_PATH + " --overall-time-limit {time_limit_sec} --overall-memory-limit {memory_limit_mb} --plan-file {{plan_file}} {{domain_file}} {{problem_file}} --search {heuristic}"
 GENERATOR_CMD = "python3 " + GENERATOR_PATH + " --output {problem_file} {moves_num}"
 
 # info regex
@@ -48,14 +48,19 @@ FAST_DOWNWARD_IDA_STAR_FF_FILE = RESULTS_PATH + "fast_downward_ida_star_ff.csv"
 RESULT_FILES = [SCORPION_2023_FILE, FAST_DOWNWARD_IDA_STAR_ADD_FILE, FAST_DOWNWARD_IDA_STAR_HMAX_FILE, FAST_DOWNWARD_IDA_STAR_FF_FILE]
 
 FILE_COMMAND_MAP = {
-    SCORPION_2023_FILE: SCORPION_CMD,
-    FAST_DOWNWARD_IDA_STAR_ADD_FILE: FAST_DOWNWARD_CMD.format(memory_limit_kb=MEMORY_LIMIT_KB, time_limit_sec=TIME_LIMIT_SEC, heuristic=IDA_STAR_ADD_HEURISTIC),
-    FAST_DOWNWARD_IDA_STAR_HMAX_FILE: FAST_DOWNWARD_CMD.format(memory_limit_kb=MEMORY_LIMIT_KB, time_limit_sec=TIME_LIMIT_SEC, heuristic=IDA_STAR_HMAX_HEURISTIC),
-    FAST_DOWNWARD_IDA_STAR_FF_FILE: FAST_DOWNWARD_CMD.format(memory_limit_kb=MEMORY_LIMIT_KB, time_limit_sec=TIME_LIMIT_SEC, heuristic=IDA_STAR_FF_HEURISTIC)
+    SCORPION_2023_FILE: SCORPION_CMD.format(memory_limit_mb=MEMORY_LIMIT_MB, time_limit_sec=TIME_LIMIT_SEC),
+    FAST_DOWNWARD_IDA_STAR_ADD_FILE: FAST_DOWNWARD_CMD.format(memory_limit_mb=MEMORY_LIMIT_MB, time_limit_sec=TIME_LIMIT_SEC, heuristic=IDA_STAR_ADD_HEURISTIC),
+    FAST_DOWNWARD_IDA_STAR_HMAX_FILE: FAST_DOWNWARD_CMD.format(memory_limit_mb=MEMORY_LIMIT_MB, time_limit_sec=TIME_LIMIT_SEC, heuristic=IDA_STAR_HMAX_HEURISTIC),
+    FAST_DOWNWARD_IDA_STAR_FF_FILE: FAST_DOWNWARD_CMD.format(memory_limit_mb=MEMORY_LIMIT_MB, time_limit_sec=TIME_LIMIT_SEC, heuristic=IDA_STAR_FF_HEURISTIC)
 }
 
 # result files columns
 COLUMNS = ["RANDOM_MOVES", "SEARCH_EXIT_CODE", "TOTAL_TIME", "PLAN_LENGTH", "PEAK_MEMORY", "GENERATED_STATES", "TIME_LIMIT_SEC", "MEMORY_LIMIT_MB"]
+
+# planner error codes
+MEMORY_LIMIT_ERROR_CODE = "22"
+TIME_LIMIT_ERROR_CODE = "23"
+
 
 def get_info(output: str):
     # find relevant info using regex
@@ -105,7 +110,18 @@ def get_last_problem_number(file_path: str):
 def write_results(file_path: str, problem_number: int, results: tuple):
     # write results to file
     with open(file_path, 'a') as f:
-        f.write(str(problem_number) + "," + ",".join(results) + "," + str(TIME_LIMIT_SEC) + "," + str(MEMORY_LIMIT_KB) + "\n")
+        f.write(str(problem_number) + "," + ",".join(results) + "," + str(TIME_LIMIT_SEC) + "," + str(MEMORY_LIMIT_MB) + "\n")
+
+def replace_results(file_path: str, problem_number: int, results: tuple):
+    # replace results in file
+    with open(file_path, 'r') as f:
+        lines = f.readlines()
+    with open(file_path, 'w') as f:
+        for line in lines:
+            if line.split(",")[0] == str(problem_number):
+                f.write(str(problem_number) + "," + ",".join(results) + "," + str(TIME_LIMIT_SEC) + "," + str(MEMORY_LIMIT_MB) + "\n")
+            else:
+                f.write(line)
 
 def align_planners():
     print("\nAligning planners problem number.")
@@ -136,7 +152,32 @@ def generate_problem_file(number: int):
     command = GENERATOR_CMD.format(problem_file=problem_file, moves_num=number)
     run_command(command)
 
+def redo_problems():
+    print("\nRedoing problems with more resources if possible.")
+    # redo problems with more resources if possible
+    for file in RESULT_FILES:
+        # read file and iterate over the problems
+        with open(file, 'r') as f:
+            lines = f.readlines()
+            for line in lines:
+                # get the problem number, the search exit code, time_limit_sec and memory_limit_mb
+                line_list = line.split(",")
+                problem_number = int(line_list[0])
+                search_exit_code = line_list[1]
+                time_limit_sec = int(line_list[-2])
+                memory_limit_mb = int(line_list[-1])
+                # check if the problem is not solved
+                if (search_exit_code == MEMORY_LIMIT_ERROR_CODE and memory_limit_mb < MEMORY_LIMIT_MB) or (search_exit_code == TIME_LIMIT_ERROR_CODE and time_limit_sec < TIME_LIMIT_SEC):
+                    # run planner with more memory
+                    command = FILE_COMMAND_MAP[file]
+                    command = command.format(domain_file=DOMAIN_FILE, problem_file=PROBLEM_FILE.format(number=problem_number), plan_file=PLAN_FILE.format(number=problem_number))
+                    results = run_planner_command(command)
+                    replace_results(file, problem_number, results)
+
+
 def run_planners():
+    # redo problems with more resources if possible
+    redo_problems()
     # align planners problem number if needed
     next_problem_number = align_planners()
     # check if all the problems are solved

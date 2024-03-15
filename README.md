@@ -27,16 +27,18 @@ Download Fast Downward image:
     mkdir fast-downward
     apptainer pull ./fast-downward/fast-downward.sif docker://aibasel/downward:latest
 
-Build Scorpion planner:
-
-    cd planner25
-    apptainer build scorpion.sif Apptainer.scorpion_2023
-
 ## Dependencies
 
 Rubiks cube generator: https://github.com/ipc2023-classical/domain-rubiks-cube
 
 Planner: https://github.com/ipc2023-classical/planner25
+
+## Developer commands
+
+Build Scorpion planner:
+
+    cd planner25
+    apptainer build scorpion.sif Apptainer.scorpion_2023
 
 
 
