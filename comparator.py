@@ -4,8 +4,9 @@ import os
 from datetime import datetime
 
 # hyperparameters
-PROBLEM_NUMBER = 10
+PROBLEM_NUMBER = 20
 TIME_LIMIT_SEC = 3600 # 1h
+MEMORY_LIMIT_KB = 5000 # 5GB
 
 # paths
 SCORPION_PATH = "./planner25/scorpion.sif"
@@ -25,7 +26,7 @@ FAST_DOWNWARD_HEURISTICS = [IDA_STAR_ADD_HEURISTIC, IDA_STAR_HMAX_HEURISTIC, IDA
 
 # planner commands
 SCORPION_CMD = SCORPION_PATH + " {domain_file} {problem_file} {plan_file}"
-FAST_DOWNWARD_CMD = FAST_DOWNWARD_PATH + " --search-time-limit {time_limit_sec} --plan-file {{plan_file}} {{domain_file}} {{problem_file}} --search {heuristic}"
+FAST_DOWNWARD_CMD = FAST_DOWNWARD_PATH + " --overall-time-limit {time_limit_sec} --overall-memory-limit {memory_limit_kb} --plan-file {{plan_file}} {{domain_file}} {{problem_file}} --search {heuristic}"
 GENERATOR_CMD = "python3 " + GENERATOR_PATH + " --output {problem_file} {moves_num}"
 
 # info regex
@@ -48,13 +49,13 @@ RESULT_FILES = [SCORPION_2023_FILE, FAST_DOWNWARD_IDA_STAR_ADD_FILE, FAST_DOWNWA
 
 FILE_COMMAND_MAP = {
     SCORPION_2023_FILE: SCORPION_CMD,
-    FAST_DOWNWARD_IDA_STAR_ADD_FILE: FAST_DOWNWARD_CMD.format(time_limit_sec=TIME_LIMIT_SEC, heuristic=IDA_STAR_ADD_HEURISTIC),
-    FAST_DOWNWARD_IDA_STAR_HMAX_FILE: FAST_DOWNWARD_CMD.format(time_limit_sec=TIME_LIMIT_SEC, heuristic=IDA_STAR_HMAX_HEURISTIC),
-    FAST_DOWNWARD_IDA_STAR_FF_FILE: FAST_DOWNWARD_CMD.format(time_limit_sec=TIME_LIMIT_SEC, heuristic=IDA_STAR_FF_HEURISTIC)
+    FAST_DOWNWARD_IDA_STAR_ADD_FILE: FAST_DOWNWARD_CMD.format(memory_limit_kb=MEMORY_LIMIT_KB, time_limit_sec=TIME_LIMIT_SEC, heuristic=IDA_STAR_ADD_HEURISTIC),
+    FAST_DOWNWARD_IDA_STAR_HMAX_FILE: FAST_DOWNWARD_CMD.format(memory_limit_kb=MEMORY_LIMIT_KB, time_limit_sec=TIME_LIMIT_SEC, heuristic=IDA_STAR_HMAX_HEURISTIC),
+    FAST_DOWNWARD_IDA_STAR_FF_FILE: FAST_DOWNWARD_CMD.format(memory_limit_kb=MEMORY_LIMIT_KB, time_limit_sec=TIME_LIMIT_SEC, heuristic=IDA_STAR_FF_HEURISTIC)
 }
 
 # result files columns
-COLUMNS = ["RANDOM_MOVES", "SEARCH_EXIT_CODE", "TOTAL_TIME", "PLAN_LENGTH", "PEAK_MEMORY", "GENERATED_STATES"]
+COLUMNS = ["RANDOM_MOVES", "SEARCH_EXIT_CODE", "TOTAL_TIME", "PLAN_LENGTH", "PEAK_MEMORY", "GENERATED_STATES", "TIME_LIMIT_SEC", "MEMORY_LIMIT_MB"]
 
 def get_info(output: str):
     # find relevant info using regex
@@ -104,7 +105,7 @@ def get_last_problem_number(file_path: str):
 def write_results(file_path: str, problem_number: int, results: tuple):
     # write results to file
     with open(file_path, 'a') as f:
-        f.write(str(problem_number) + "," + ",".join(results) + "\n")
+        f.write(str(problem_number) + "," + ",".join(results) + "," + str(TIME_LIMIT_SEC) + "," + str(MEMORY_LIMIT_KB) + "\n")
 
 def align_planners():
     print("\nAligning planners problem number.")
