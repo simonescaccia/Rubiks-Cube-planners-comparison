@@ -10,7 +10,7 @@ MEMORY_LIMIT_KB = 5000 # 5GB
 
 # paths
 SCORPION_PATH = "./planner25/scorpion.sif"
-FAST_DOWNWARD_PATH = "./downward/fast-downward.py"
+FAST_DOWNWARD_PATH = "./fast-downward/fast-downward.sif"
 DOMAIN_RUBIKS_CUBE_PATH = "./"
 PROBLEM_RUBIKS_CUBE_PATH = "./problems/"
 PLAN_PATH = "./plans/"
@@ -127,9 +127,13 @@ def align_planners():
     return max_problem_number
 
 def generate_problem_file(number: int):
+    problem_file = PROBLEM_FILE.format(number=number)
+    # check il the file exists
+    if os.path.exists(problem_file):
+        return
     # generate the problem file
     print("\nGenerating problem file with ", number, " random moves.")
-    command = GENERATOR_CMD.format(problem_file=PROBLEM_FILE.format(number=number), moves_num=number)
+    command = GENERATOR_CMD.format(problem_file=problem_file, moves_num=number)
     run_command(command)
 
 def run_planners():
