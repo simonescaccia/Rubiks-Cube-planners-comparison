@@ -40,6 +40,16 @@ Build Scorpion planner:
     cd planner25
     apptainer build scorpion.sif Apptainer.scorpion_2023
 
+Run optimal-solver:
+
+    cd domain-rubiks-cube/optimal-solver
+    python3 pddl-to-solver-input.py ../../problems/problem15.pddl
+    make
+    ./optimal-solver
+
+then enter the output of pddl-to-solver-input.py
+
+
 
 
 
