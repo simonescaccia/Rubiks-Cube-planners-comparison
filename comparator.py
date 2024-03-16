@@ -6,7 +6,7 @@ from datetime import datetime
 # hyperparameters
 PROBLEM_NUMBER = 20
 TIME_LIMIT_SEC = 3600 # 1h
-MEMORY_LIMIT_MB = 10000 # 10GB
+MEMORY_LIMIT_MB = 13000 # 13GB
 
 # paths
 SCORPION_PATH = "./planner25/scorpion.sif"
@@ -45,7 +45,8 @@ FAST_DOWNWARD_IDA_STAR_ADD_FILE = RESULTS_PATH + "fast_downward_ida_star_add.csv
 FAST_DOWNWARD_IDA_STAR_HMAX_FILE = RESULTS_PATH + "fast_downward_ida_star_hmax.csv"
 FAST_DOWNWARD_IDA_STAR_FF_FILE = RESULTS_PATH + "fast_downward_ida_star_ff.csv"
 
-RESULT_FILES = [SCORPION_2023_FILE, FAST_DOWNWARD_IDA_STAR_ADD_FILE, FAST_DOWNWARD_IDA_STAR_HMAX_FILE, FAST_DOWNWARD_IDA_STAR_FF_FILE]
+# RESULT_FILES = [SCORPION_2023_FILE, FAST_DOWNWARD_IDA_STAR_ADD_FILE, FAST_DOWNWARD_IDA_STAR_HMAX_FILE, FAST_DOWNWARD_IDA_STAR_FF_FILE]
+RESULT_FILES = [FAST_DOWNWARD_IDA_STAR_FF_FILE]
 
 FILE_COMMAND_MAP = {
     SCORPION_2023_FILE: SCORPION_CMD.format(memory_limit_mb=MEMORY_LIMIT_MB, time_limit_sec=TIME_LIMIT_SEC),
@@ -113,15 +114,12 @@ def write_results(file_path: str, problem_number: int, results: tuple):
         f.write(str(problem_number) + "," + ",".join(results) + "," + str(TIME_LIMIT_SEC) + "," + str(MEMORY_LIMIT_MB) + "\n")
 
 def replace_results(file_path: str, problem_number: int, results: tuple):
-    # replace results in file
+    # replace the problem_number+1 line with the new results
     with open(file_path, 'r') as f:
         lines = f.readlines()
+        lines[problem_number] = str(problem_number) + "," + ",".join(results) + "," + str(TIME_LIMIT_SEC) + "," + str(MEMORY_LIMIT_MB) + "\n"
     with open(file_path, 'w') as f:
-        for line in lines:
-            if line.split(",")[0] == str(problem_number):
-                f.write(str(problem_number) + "," + ",".join(results) + "," + str(TIME_LIMIT_SEC) + "," + str(MEMORY_LIMIT_MB) + "\n")
-            else:
-                f.write(line)
+        f.writelines(lines)
 
 def align_planners():
     print("\nAligning planners problem number.")
@@ -153,13 +151,13 @@ def generate_problem_file(number: int):
     run_command(command)
 
 def redo_problems():
-    print("\nRedoing problems with more resources if possible.")
+    print("\nRedoing problems with more resources.")
     # redo problems with more resources if possible
     for file in RESULT_FILES:
-        # read file and iterate over the problems
+        # read file and iterate over the lines starting from the second line
         with open(file, 'r') as f:
             lines = f.readlines()
-            for line in lines:
+            for line in lines[1:]:
                 # get the problem number, the search exit code, time_limit_sec and memory_limit_mb
                 line_list = line.split(",")
                 problem_number = int(line_list[0])
