@@ -5,8 +5,7 @@ from datetime import datetime
 
 # hyperparameters
 PROBLEM_NUMBER = 16
-# TIME_LIMIT_SEC = 3600 # 1h
-TIME_LIMIT_SEC = 7200 # 2h
+TIME_LIMIT_SEC = 3600 # 1h
 MEMORY_LIMIT_MB = 13000 # 13GB
 
 # paths
