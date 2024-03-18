@@ -97,17 +97,13 @@ def compute_plot_3(data_x: list, data_y: dict):
     labels = ["scorpion_2023", "fast_downward_ida_star_add", "fast_downward_ida_star_hmax", "fast_downward_ida_star_ff"]
     y_ticks = 0
     # create the plot
-    # create the plot
-    for i, y in enumerate(data_y):
-        y_ticks = max(y_ticks, max(data_y[y]//1024))
-        plt.bar([x + x_shift[i] for x in data_x], data_y[y]//1024, bar_width, label=labels[i])
-    for y in data_y_total_time:
+    for i, y in enumerate(data_y_total_time):
         data_y_list = data_y_total_time[y].copy()
-        for i in range(len(data_y_list)):
-            if search_exit_code[y][i] == 23:
-                data_y_list[i] = 3600
+        for j in range(len(data_y_list)):
+            if search_exit_code[y][j] == 23:
+                data_y_list[j] = 3600
         y_ticks = max(y_ticks, max(data_y_list))
-        plt.bar([x + x_shift[i] for x in data_x], data_y[y], bar_width, label=labels[i])
+        plt.bar([x + x_shift[i] for x in data_x], data_y_list, bar_width, label=labels[i])
     # set labels
     plt.xlabel('Optimal plan length')
     plt.ylabel('Total time (s)')
@@ -153,6 +149,6 @@ if __name__ == "__main__":
     # extract the relevant info
     data_x, data_y = extract_info(results)
 
-    compute_plot_1(data_x, data_y)
-    compute_plot_2(data_x, data_y)
+    #compute_plot_1(data_x, data_y)
+    #compute_plot_2(data_x, data_y)
     compute_plot_3(data_x, data_y)
