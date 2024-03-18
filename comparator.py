@@ -4,7 +4,7 @@ import os
 from datetime import datetime
 
 # hyperparameters
-PROBLEM_NUMBER = 20
+PROBLEM_NUMBER = 16
 TIME_LIMIT_SEC = 3600 # 1h
 MEMORY_LIMIT_MB = 13000 # 13GB
 
@@ -45,8 +45,8 @@ FAST_DOWNWARD_IDA_STAR_ADD_FILE = RESULTS_PATH + "fast_downward_ida_star_add.csv
 FAST_DOWNWARD_IDA_STAR_HMAX_FILE = RESULTS_PATH + "fast_downward_ida_star_hmax.csv"
 FAST_DOWNWARD_IDA_STAR_FF_FILE = RESULTS_PATH + "fast_downward_ida_star_ff.csv"
 
-# RESULT_FILES = [SCORPION_2023_FILE, FAST_DOWNWARD_IDA_STAR_ADD_FILE, FAST_DOWNWARD_IDA_STAR_HMAX_FILE, FAST_DOWNWARD_IDA_STAR_FF_FILE]
-RESULT_FILES = [FAST_DOWNWARD_IDA_STAR_FF_FILE]
+RESULT_FILES = [SCORPION_2023_FILE, FAST_DOWNWARD_IDA_STAR_ADD_FILE, FAST_DOWNWARD_IDA_STAR_HMAX_FILE, FAST_DOWNWARD_IDA_STAR_FF_FILE]
+# RESULT_FILES = [FAST_DOWNWARD_IDA_STAR_FF_FILE]
 
 FILE_COMMAND_MAP = {
     SCORPION_2023_FILE: SCORPION_CMD.format(memory_limit_mb=MEMORY_LIMIT_MB, time_limit_sec=TIME_LIMIT_SEC),
@@ -133,11 +133,11 @@ def align_planners():
     if min_problem_number != max_problem_number:
         # run planners with the minimum problem number
         for i in range(len(problem_number_list)):
-            if problem_number_list[i] == min_problem_number:
+            for j in range(problem_number_list[i], max_problem_number):
                 command = FILE_COMMAND_MAP[RESULT_FILES[i]]
-                command = command.format(domain_file=DOMAIN_FILE, problem_file=PROBLEM_FILE.format(number=min_problem_number), plan_file=PLAN_FILE.format(number=min_problem_number))
+                command = command.format(domain_file=DOMAIN_FILE, problem_file=PROBLEM_FILE.format(number=j), plan_file=PLAN_FILE.format(number=j))
                 results = run_planner_command(command)
-                write_results(RESULT_FILES[i], min_problem_number, results)
+                write_results(RESULT_FILES[i], j, results)
     return max_problem_number
 
 def generate_problem_file(number: int):
