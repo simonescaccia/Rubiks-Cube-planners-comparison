@@ -88,7 +88,6 @@ def compute_plot_3(data_x: list, data_y: dict):
     # x-axis: optimal plan length, y-axis: total time.
     # Column chart, one column per planner for each problem. If search_exit_code is 23, set the time to the time limit.
     data_y_total_time = data_y["TOTAL_TIME"]
-    search_exit_code = data_y["SEARCH_EXIT_CODE"]
     # Set figure dimensions
     fig = plt.figure(figsize=(10, 6))  # Width = 10 inches, Height = 6 inches
     # create the plot
@@ -98,18 +97,14 @@ def compute_plot_3(data_x: list, data_y: dict):
     y_ticks = 0
     # create the plot
     for i, y in enumerate(data_y_total_time):
-        data_y_list = data_y_total_time[y].copy()
-        for j in range(len(data_y_list)):
-            if search_exit_code[y][j] == 23:
-                data_y_list[j] = 3600
-        y_ticks = max(y_ticks, max(data_y_list))
-        plt.bar([x + x_shift[i] for x in data_x], data_y_list, bar_width, label=labels[i])
+        y_ticks = max(y_ticks, max(data_y_total_time[y]))
+        plt.bar([x + x_shift[i] for x in data_x], data_y_total_time[y], bar_width, label=labels[i])
     # set labels
     plt.xlabel('Optimal plan length')
     plt.ylabel('Total time (s)')
     # set x-ticks to match categories
     plt.xticks(data_x)
-    plt.yticks(range(0, int(y_ticks+1000), 1000))
+    plt.yticks(range(0, int(y_ticks), 100))
     # set title
     plt.title('Total time by planner')
     # add background grid
@@ -120,7 +115,40 @@ def compute_plot_3(data_x: list, data_y: dict):
     plt.legend()
     # save the plot
     plt.savefig(PLOTS_PATH + "plot3.png")
-    
+
+def compute_plot_4(data_x: list, data_y: dict):
+        # plot 2
+    # x-axis: optimal plan length, y-axis: generated states
+    # Column chart, one column per planner for each problem.
+    data_y = data_y["GENERATED_STATES"]
+    # Set figure dimensions
+    fig = plt.figure(figsize=(10, 6))  # Width = 10 inches, Height = 6 inches
+    # create the plot
+    bar_width = 0.2
+    x_shift = [-bar_width, 0, bar_width, 2*bar_width]
+    labels = ["scorpion_2023", "fast_downward_ida_star_add", "fast_downward_ida_star_hmax", "fast_downward_ida_star_ff"]
+    y_ticks = 0
+    # create the plot
+    for i, y in enumerate(data_y):
+        y_ticks = max(y_ticks, max(data_y[y]))
+        plt.bar([x + x_shift[i] for x in data_x], data_y[y], bar_width, label=labels[i])
+    # set labels
+    plt.xlabel('Optimal plan length')
+    plt.ylabel('Generated states')
+    # set x-ticks to match categories
+    plt.xticks(data_x)
+    plt.yticks(range(0, int(y_ticks), 5000000))
+    # set title
+    plt.title('Generated states by planner')
+    # add background grid
+    plt.grid(axis='both', linestyle='--')
+    ax = plt.gca()
+    ax.set_axisbelow(True)
+    # add legend
+    plt.legend()
+    # save the plot
+    plt.savefig(PLOTS_PATH + "plot4.png", dpi=300)
+
 def extract_info(results: list):
     tmp_data_x = {}
     data_y = {}
@@ -128,6 +156,7 @@ def extract_info(results: list):
     data_y_plan_length = {}
     data_y_peak_memory = {}
     data_y_total_time = {}
+    data_y_generated_states = {}
     for i, result in enumerate(results):
         # extract the relevant info
         tmp_data_x[RESULT_FILES[i]] = result["RANDOM_MOVES"]
@@ -135,12 +164,14 @@ def extract_info(results: list):
         data_y_plan_length[RESULT_FILES[i]] = result["PLAN_LENGTH"]
         data_y_peak_memory[RESULT_FILES[i]] = result["PEAK_MEMORY"]
         data_y_total_time[RESULT_FILES[i]] = result["TOTAL_TIME"]
+        data_y_generated_states[RESULT_FILES[i]] = result["GENERATED_STATES"]
     # data_x is the same for all planners, so we can use the one with the most data
     data_x = tmp_data_x[max(tmp_data_x, key=lambda x: len(tmp_data_x[x]))]
     data_y["SEARCH_EXIT_CODE"] = data_y_search_exit_code
     data_y["PLAN_LENGTH"] = data_y_plan_length
     data_y["PEAK_MEMORY"] = data_y_peak_memory
     data_y["TOTAL_TIME"] = data_y_total_time
+    data_y["GENERATED_STATES"] = data_y_generated_states
     return data_x, data_y
 
 if __name__ == "__main__":
@@ -152,3 +183,4 @@ if __name__ == "__main__":
     #compute_plot_1(data_x, data_y)
     #compute_plot_2(data_x, data_y)
     compute_plot_3(data_x, data_y)
+    #compute_plot_4(data_x, data_y)

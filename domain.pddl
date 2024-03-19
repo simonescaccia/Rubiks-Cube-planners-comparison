@@ -1,4 +1,3 @@
-;; 12-action variant
 (define
     (domain rubiks-cube)
     (:requirements :adl)
