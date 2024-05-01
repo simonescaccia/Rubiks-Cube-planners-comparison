@@ -1,5 +1,9 @@
 # Rubiks-Cube-planners-comparison
 
+## Honors
+
+Project published in the Planning And Reasoning course site: https://sites.google.com/uniroma1.it/pr-23-24/ct-team
+
 ## Planners
 
 - Scorpion 2023
@@ -38,7 +42,9 @@ Planner: https://github.com/ipc2023-classical/planner25
 Build Scorpion planner:
 
     cd planner25
-    apptainer build scorpion.sif Apptainer.scorpion_2023
+    sudo apt install cmake g++ git make python3
+    ./build.py
+    sudo apptainer build scorpion.sif Apptainer.scorpion_2023
 
 Run optimal-solver:
 
