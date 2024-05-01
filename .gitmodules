@@ -1,3 +1,6 @@
 [submodule "domain-rubiks-cube"]
 	path = domain-rubiks-cube
 	url = https://github.com/ipc2023-classical/domain-rubiks-cube
+[submodule "planner25"]
+	path = planner25
+	url = https://github.com/simonescaccia/planner25.git
