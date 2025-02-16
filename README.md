@@ -1,5 +1,7 @@
 # Rubiks-Cube-planners-comparison
 
+Comparison of planners for solving the Rubik's Cube problem.
+
 ## Honors
 
 Project published in the Planning And Reasoning course site: https://sites.google.com/uniroma1.it/pr-23-24/ct-team
